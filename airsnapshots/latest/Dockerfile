@@ -5,7 +5,7 @@ RUN useradd airsnapshots && \
 	mkdir -p /airsnapshots && \
 	chown -R airsnapshots:airsnapshots /home/airsnapshots && \
 	chown -R airsnapshots:airsnapshots /airsnapshots && \
-	su - airsnapshots -c "composer global require 45air/airsnapshots" \
+	su - airsnapshots -c "composer global require 45air/air-db-snapshots" \
 	&& su - airsnapshots -c "composer clear-cache"
 
 ENV PATH="/home/airsnapshots/.composer/vendor/bin:${PATH}"
