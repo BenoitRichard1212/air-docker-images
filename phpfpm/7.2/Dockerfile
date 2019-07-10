@@ -55,6 +55,8 @@ RUN curl -L https://phar.phpunit.de/phpunit.phar > /tmp/phpunit.phar \
 RUN XDEBUG=$(find /usr/local/lib/php -name 'xdebug.so' | head -n 1 | tail -n 1) \
 	&& ln -s $XDEBUG /usr/local/lib/php/extensions/xdebug.so
 
+RUN rm /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
+
 COPY entrypoint.sh /entrypoint.sh
 
 RUN chmod +x /entrypoint.sh
