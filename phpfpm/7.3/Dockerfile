@@ -1,5 +1,16 @@
 FROM php:7.3-fpm
 
+ENV COMPOSER_ALLOW_SUPERUSER 1
+ENV PHP_XDEBUG_DEFAULT_ENABLE ${PHP_XDEBUG_DEFAULT_ENABLE:-1}
+ENV PHP_XDEBUG_REMOTE_ENABLE ${PHP_XDEBUG_REMOTE_ENABLE:-1}
+ENV PHP_XDEBUG_REMOTE_HOST ${PHP_XDEBUG_REMOTE_HOST:-"127.0.0.1"}
+ENV PHP_XDEBUG_REMOTE_PORT ${PHP_XDEBUG_REMOTE_PORT:-9000}
+ENV PHP_XDEBUG_REMOTE_AUTO_START ${PHP_XDEBUG_REMOTE_AUTO_START:-1}
+ENV PHP_XDEBUG_REMOTE_CONNECT_BACK ${PHP_XDEBUG_REMOTE_CONNECT_BACK:-1}
+ENV PHP_XDEBUG_IDEKEY ${PHP_XDEBUG_IDEKEY:-docker}
+ENV PHP_XDEBUG_PROFILER_ENABLE ${PHP_XDEBUG_PROFILER_ENABLE:-0}
+ENV PHP_XDEBUG_PROFILER_OUTPUT_DIR ${PHP_XDEBUG_PROFILER_OUTPUT_DIR:-"/tmp"}
+
 RUN apt-get update \
 	&& apt-get install -y \
 	libfreetype6-dev \
@@ -7,7 +18,7 @@ RUN apt-get update \
 	libpng-dev \
 	libz-dev \
 	less \
-	mysql-client \
+	mariadb-client \
 	libmemcached11 \
 	libmemcachedutil2 \
 	libmemcached-dev \
@@ -16,12 +27,13 @@ RUN apt-get update \
 	subversion \
 	wget \
 	libxml2-dev \
-	ssmtp \
 	imagemagick \
 	libmagickwand-dev \
 	unzip \
 	iproute2 \
 	libicu-dev \
+	msmtp \
+	msmtp-mta \
 	&& docker-php-ext-install -j$(nproc) \
 	mysqli \
 	pdo_mysql \
@@ -30,11 +42,8 @@ RUN apt-get update \
 	&& docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/ \
 	&& docker-php-ext-install -j$(nproc) gd \
 	&& docker-php-ext-install soap intl \
-	&& pecl install xdebug-2.7.0beta1 \
-	&& pecl install memcached \
-	&& pecl install imagick \
+	&& pecl install xdebug memcached imagick \
 	&& docker-php-ext-enable xdebug memcached imagick \
-	&& echo "mailhub=mailcatcher:1025\nUseTLS=NO\nFromLineOverride=YES" > /etc/ssmtp/ssmtp.conf \
 	&& apt-get remove -y build-essential libz-dev libmemcached-dev libmagickwand-dev libxml2-dev libicu-dev \
 	&& apt-get autoremove -y \
 	&& apt-get clean
@@ -53,14 +62,18 @@ RUN curl -L https://phar.phpunit.de/phpunit.phar > /tmp/phpunit.phar \
 	&& chmod +x /tmp/phpunit.phar \
 	&& mv /tmp/phpunit.phar /usr/local/bin/phpunit
 
-RUN XDEBUG=$(find /usr/local/lib/php -name 'xdebug.so' | head -n 1 | tail -n 1) \
-	&& ln -s $XDEBUG /usr/local/lib/php/extensions/xdebug.so
+COPY msmtp.conf /root/.msmtprc
 
-RUN rm /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
+RUN XDEBUG=$(find /usr/local/lib/php -name 'xdebug.so' | head -n 1 | tail -n 1) \
+	&& ln -s $XDEBUG /usr/local/lib/php/extensions/xdebug.so \
+	&& rm /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
 
 COPY entrypoint.sh /entrypoint.sh
 
-RUN chmod +x /entrypoint.sh
+RUN chmod +x /entrypoint.sh \
+	&& mv /var/www/html /var/www/web
+
+WORKDIR /var/www/web
 
 ENTRYPOINT ["/entrypoint.sh"]
 CMD ["php-fpm"]

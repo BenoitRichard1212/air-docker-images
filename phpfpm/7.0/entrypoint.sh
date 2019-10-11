@@ -12,8 +12,8 @@ function fix_linux_internal_host() {
 }
 
 echo "Checking USER ID"
-www_uid=`stat -c "%u" /var/www/html`
-www_gid=`stat -c "%g" /var/www/html`
+www_uid=`stat -c "%u" /var/www/web`
+www_gid=`stat -c "%g" /var/www/web`
 
 echo "Host user is $www_uid:$www_gid"
 

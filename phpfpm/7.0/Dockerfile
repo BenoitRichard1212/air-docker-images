@@ -15,7 +15,6 @@ RUN apt-get update \
 	subversion \
 	wget \
 	libxml2-dev \
-	ssmtp \
 	imagemagick \
 	libmagickwand-dev \
 	unzip \
@@ -29,11 +28,8 @@ RUN apt-get update \
 	&& docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/ \
 	&& docker-php-ext-install -j$(nproc) gd \
 	&& docker-php-ext-install soap intl \
-	&& pecl install xdebug \
-	&& pecl install memcached \
-	&& pecl install imagick \
+	&& pecl install xdebug memcached imagick \
 	&& docker-php-ext-enable xdebug memcached imagick \
-	&& echo "mailhub=mailcatcher:1025\nUseTLS=NO\nFromLineOverride=YES" > /etc/ssmtp/ssmtp.conf \
 	&& apt-get remove -y build-essential libz-dev libmemcached-dev libmagickwand-dev libxml2-dev libicu-dev \
 	&& apt-get autoremove -y \
 	&& apt-get clean
@@ -59,7 +55,10 @@ RUN rm /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
 
 COPY entrypoint.sh /entrypoint.sh
 
-RUN chmod +x /entrypoint.sh
+RUN chmod +x /entrypoint.sh \
+	&& mv /var/www/html /var/www/web
+
+WORKDIR /var/www/web
 
 ENTRYPOINT ["/entrypoint.sh"]
 CMD ["php-fpm"]
