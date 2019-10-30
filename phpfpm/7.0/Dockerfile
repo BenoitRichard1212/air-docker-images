@@ -56,7 +56,8 @@ RUN rm /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
 COPY entrypoint.sh /entrypoint.sh
 
 RUN chmod +x /entrypoint.sh \
-	&& mv /var/www/html /var/www/web
+	&& mv /var/www/html /var/www/web \
+	&& chown www-data:www-data /var/www/web
 
 WORKDIR /var/www/web
 

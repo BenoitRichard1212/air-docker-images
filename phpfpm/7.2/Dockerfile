@@ -70,7 +70,8 @@ RUN XDEBUG=$(find /usr/local/lib/php -name 'xdebug.so' | head -n 1 | tail -n 1) 
 COPY entrypoint.sh /entrypoint.sh
 
 RUN chmod +x /entrypoint.sh \
-	&& mv /var/www/html /var/www/web
+	&& mv /var/www/html /var/www/web \
+	&& chown www-data:www-data /var/www/web
 
 WORKDIR /var/www/web
 
