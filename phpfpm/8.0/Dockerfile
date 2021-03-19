@@ -27,7 +27,6 @@ RUN apt-get update \
 	subversion \
 	wget \
 	libxml2-dev \
-	imagemagick \
 	libmagickwand-dev \
 	unzip \
 	iproute2 \
@@ -39,14 +38,24 @@ RUN apt-get update \
 	pdo_mysql \
 	sockets \
 	zip \
-	&& docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/ \
+	&& docker-php-ext-configure gd --with-freetype --with-jpeg \
 	&& docker-php-ext-install -j$(nproc) gd \
 	&& docker-php-ext-install soap intl \
-	&& pecl install xdebug memcached imagick \
-	&& docker-php-ext-enable xdebug memcached imagick \
-	&& apt-get remove -y build-essential libz-dev libmemcached-dev libmagickwand-dev libxml2-dev libicu-dev \
+	&& pecl install xdebug memcached \
+	&& docker-php-ext-enable xdebug memcached \
+	&& apt-get remove -y build-essential libz-dev libmemcached-dev libxml2-dev libicu-dev \
 	&& apt-get autoremove -y \
 	&& apt-get clean
+
+RUN git clone https://github.com/Imagick/imagick \
+	&& apt-get install -y libmagickwand-dev \
+    && cd imagick \ 
+	&& phpize \ 
+	&& ./configure \
+	&& make \
+	&& make install \
+	&& cd . \
+	$$ apt-get remove -y libmagickwand-dev
 
 RUN curl https://getcomposer.org/download/$(curl -LSs https://api.github.com/repos/composer/composer/releases/latest | grep 'tag_name' | sed -e 's/.*: "//;s/".*//')/composer.phar > composer.phar \
 	&& chmod +x composer.phar \
